@@ -101,6 +101,8 @@ inline std::ostream& operator<<(std::ostream& os,
 const int kMaxFastLiteralDepth = 3;
 const int kMaxFastLiteralProperties = JSObject::kMaxInObjectProperties;
 
+enum BaseTaggedness : uint8_t { kUntaggedBase, kTaggedBase };
+
 }  // namespace compiler
 }  // namespace internal
 }  // namespace v8
@@ -123,5 +125,14 @@ constexpr double kMaxDoubleRepresentableInt64 = 9223372036854774784.0;
 constexpr double kMinDoubleRepresentableInt64 =
     std::numeric_limits<int64_t>::min();
 constexpr double kMaxDoubleRepresentableUint64 = 18446744073709549568.0;
+
+// There is no (currently) available constexpr version of base::bit_cast, so
+// we have to make do with constructing the -0.0 bits manually (by setting the
+// sign bit to 1 and everything else to 0).
+// TODO(leszeks): Revisit when upgrading to C++20.
+constexpr int32_t kMinusZeroLoBits = static_cast<int32_t>(0);
+constexpr int32_t kMinusZeroHiBits = static_cast<int32_t>(1) << 31;
+constexpr int64_t kMinusZeroBits =
+    (static_cast<uint64_t>(kMinusZeroHiBits) << 32) | kMinusZeroLoBits;
 
 #endif  // V8_COMPILER_GLOBALS_H_

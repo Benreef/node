@@ -19,6 +19,7 @@ namespace internal {
 namespace compiler {
 
 class MachineGraph;
+class SourcePositionTable;
 
 struct NodeWithType {
   NodeWithType() : node(nullptr), type(wasm::kWasmVoid, nullptr) {}
@@ -45,7 +46,8 @@ class WasmGCOperatorReducer final
                                                  kMultipleInstances> {
  public:
   WasmGCOperatorReducer(Editor* editor, Zone* temp_zone_, MachineGraph* mcgraph,
-                        const wasm::WasmModule* module);
+                        const wasm::WasmModule* module,
+                        SourcePositionTable* source_position_table);
 
   const char* reducer_name() const override { return "WasmGCOperatorReducer"; }
 
@@ -54,15 +56,19 @@ class WasmGCOperatorReducer final
  private:
   using ControlPathTypes = ControlPathState<NodeWithType, kMultipleInstances>;
 
+  Reduction ReduceWasmStructOperation(Node* node);
+  Reduction ReduceWasmArrayLength(Node* node);
   Reduction ReduceAssertNotNull(Node* node);
   Reduction ReduceCheckNull(Node* node);
   Reduction ReduceWasmTypeCheck(Node* node);
   Reduction ReduceWasmTypeCast(Node* node);
+  Reduction ReduceWasmExternInternalize(Node* node);
   Reduction ReduceMerge(Node* node);
   Reduction ReduceIf(Node* node, bool condition);
   Reduction ReduceStart(Node* node);
 
   Node* SetType(Node* node, wasm::ValueType type);
+  void UpdateSourcePosition(Node* new_node, Node* old_node);
   // Returns the intersection of the type marked on {object} and the type
   // information about object tracked on {control}'s control path (if present).
   wasm::TypeInModule ObjectTypeFromContext(Node* object, Node* control);
@@ -73,10 +79,12 @@ class WasmGCOperatorReducer final
 
   Graph* graph() { return mcgraph_->graph(); }
   CommonOperatorBuilder* common() { return mcgraph_->common(); }
+  SimplifiedOperatorBuilder* simplified() { return gasm_.simplified(); }
 
   MachineGraph* mcgraph_;
   WasmGraphAssembler gasm_;
   const wasm::WasmModule* module_;
+  SourcePositionTable* source_position_table_;
 };
 
 }  // namespace compiler

@@ -152,7 +152,8 @@ class SerializerDeserializer : public RootVisitor {
     // register as the pending field. We could either hack around this, or
     // simply introduce this new bytecode.
     kNewMetaMap,
-    // Special construction bytecode for Code object bodies, which have a more
+    // Special construction bytecode for InstructionStream object bodies, which
+    // have a more
     // complex deserialization ordering and RelocInfo processing.
     kCodeBody,
 
@@ -266,6 +267,16 @@ class SerializerDeserializer : public RootVisitor {
   // This backing store reference value represents empty backing stores during
   // serialization/deserialization.
   static const uint32_t kEmptyBackingStoreRefSentinel = 0;
+};
+
+class HeapImageSerializer {
+ public:
+  enum Bytecode {
+    kReadOnlyPage,
+    kReadOnlySegment,
+    kFinalizeReadOnlyPage,
+    kSynchronize,
+  };
 };
 
 }  // namespace internal
